@@ -1,11 +1,15 @@
 #!/bin/sh
 
+npx branch-name-lint branch.config.json
+
 echo "Running 'npm run bundle'"
 
 stash_commit="$(git stash create)"
 git reset —-hard
 
-npm run bundle
+npm run format:write
+npm run package
+
 git add ./dist
 
 if [[ -n "${stash_commit}" ]]

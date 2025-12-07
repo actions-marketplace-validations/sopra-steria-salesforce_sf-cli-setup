@@ -9,7 +9,11 @@ branding:
 inputs:
   sf-cli-version:
     description: sf cli version number. Specify a version number (x.x.x) or empty for the latest version
+    required: true
+  use-cache:
+    description: Use GitHub cache for faster installation of the Salesforce CLI
     required: false
+    default: 'true'
   auth-url:
     description: The auth-url to be used in the auth-url authentication flow
     required: false
@@ -22,13 +26,34 @@ inputs:
   private-key:
     description: The private key to be used in the jwt authentication flow
     required: false
+  instance-url:
+    description: The instance url to be used in the jwt and access-token flow
+    required: false
   access-token:
     description: The access token to be used in the access-token flow
     required: false
-  instance-url:
-    description: The instance url be used in the access-token flow
+  alias:
+    description: The alias to be used for the org
     required: false
+  set-default-dev-hub:
+    description: Set the default dev hub org
+    required: false
+    default: 'false'
+  set-default-org:
+    description: Set the default org
+    required: false
+    default: 'false'
+outputs:
+  ready:
+    description: 'true if the Salesforce CLI is ready for use'
+  installed-from:
+    description:
+      'The source from which the Salesforce CLI was installed (either already-installed, tool-cache, cache or npm)'
+  authenticated:
+    description: 'true if the supplied user was authenticated'
 
 runs:
   using: node20
   main: dist/index.js
+  post: dist/save.js
+  post-if: success()

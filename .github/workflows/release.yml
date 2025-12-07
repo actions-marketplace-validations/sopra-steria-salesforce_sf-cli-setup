@@ -1,0 +1,39 @@
+name: Release
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+jobs:
+  publish:
+    name: Release
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm ci
+      - run: npx semantic-release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Fetch npm version
+        run: echo "VERSION=$(npm pkg get version | tr -d '\"')" >> $GITHUB_ENV
+      - name: Check if version changed
+        id: check-package
+        run: echo "changed=$(git diff --quiet -- package.json && echo "false" || echo "true")" >> $GITHUB_OUTPUT
+      - uses: GuillaumeFalourd/git-commit-push@v1.3
+        if: steps.check-package.outputs.changed == 'true'
+        with:
+          commit_message: Incrementing npm package version to ${{ env.VERSION }}
+          files: package.json package-lock.json
+          access_token: ${{ secrets.GITHUB_TOKEN }}
+          email: 41898282+github-actions[bot]@users.noreply.github.com
+          name: github-actions[bot]

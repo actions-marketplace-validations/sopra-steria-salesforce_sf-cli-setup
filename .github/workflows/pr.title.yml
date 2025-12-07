@@ -1,0 +1,21 @@
+name: '[PR] Title'
+on:
+  pull_request:
+    types: opened
+jobs:
+  validate-title:
+    name: Validate Title
+    permissions:
+      contents: read
+      pull-requests: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: Add branch prefix to PR title
+        uses: the-wright-jamie/update-pr-info-action@v1.1.0
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          head-branch-regex: 'breaking|feature|refactor|fix|ci|dependabot|test|docs'
+          title-insert-space: true
+          title-uppercase-head-match: false
+          title-update-action: prefix
+          title-template: '%headbranch%:'

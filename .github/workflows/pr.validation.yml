@@ -1,0 +1,46 @@
+name: '[PR] Validation'
+on:
+  pull_request:
+    branches:
+      - main
+env:
+  VERSION: 2.91.6
+permissions:
+  contents: read
+jobs:
+  test-typescript:
+    name: TypeScript Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci
+      - run: npm run format:check
+      - run: npm run lint
+  test-action:
+    name: GitHub Actions Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Test Local Action
+        uses: ./
+        with:
+          sf-cli-version: ${{ env.VERSION }}
+          use-cache: false
+      - name: Check Version Number
+        id: check
+        run: |
+          echo "version=$(sf -v | awk -F'/' '{print $3}' | awk '{print $1}')" >> $GITHUB_OUTPUT
+      - name: Verify Version Number
+        run: |
+          if [ "${{ steps.check.outputs.version }}" = "${{ env.VERSION }}" ]; then
+            echo "Version matches: ${{ env.VERSION }}"
+            exit 0
+          else
+            echo "::error::Version mismatch: expected ${{ env.VERSION }}, got ${{ steps.check.outputs.version }}"
+            exit 1
+          fi
